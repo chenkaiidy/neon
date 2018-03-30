@@ -375,13 +375,13 @@ def xprop_winograd(I, F, O, padding, minimal=False, backward=False):
     C, Y, X, N = I.shape
     K, P, Q, N = O.shape
 
-    B = 2
-    D = B + 2
-    Yw = ceil_div(P, B)
-    Xw = ceil_div(Q, B)
+    B = 2   #每次计算得到一个2x2大小的输出，输出在变换前大小为2x2
+    D = B + 2  #输出在变换前大小为4x4
+    Yw = ceil_div(P, B)  #P方向上分几个小块，也就是要计算几次，P为最终输出的宽度，B为每一次得到部分的宽度
+    Xw = ceil_div(Q, B)  #Q方向上分几个小块，也就是要计算几次
 
-    Fw = np.empty((D,D,C,K))
-    Iw = np.empty((D,D,C,Yw,Xw,N))
+    Fw = np.empty((D,D,C,K))    #变换后filter大小，从RxSxCxK => DxDxCxK  
+    Iw = np.empty((D,D,C,Yw,Xw,N)) #变换后输入大小
     Mw = np.empty((D,D,K,Yw,Xw,N)) #, dtype=np.float32
 
     # Transform Filters
