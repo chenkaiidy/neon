@@ -20,8 +20,8 @@
     szShareA  : (128*16 + 32)
     szShareB  : 32*16
 
-    gridDimA : c[0x0][0x14]
-    gridDimB : c[0x0][0x18]
+    gridDimA : c[0x0][0x14]  //gridDim.x
+    gridDimB : c[0x0][0x18]  //gridDim.y
 
     param_C[0]      : c[0x0][0x140]
     param_C[1]      : c[0x0][0x144]
@@ -43,6 +43,18 @@
     param_ldcz      : c[0x0][0x184]
     param_loops     : c[0x0][0x188]
 </CONSTANT_MAPPING>
+
+<COMMENT>
+128(8x16) threads 读shared memory,计算readAs,readBs
+0,1,16,17....
+2,3,18,19...
+4,5,20,21...
+6,7,22,23...
+8,9,24,25...
+10,11,26,27...
+12,13,28,29...
+14,15,20,31...
+</COMMENT>
 
 <REGISTER_MAPPING>
 
@@ -101,16 +113,17 @@
 // tidAX   = tid >> 2
 // tidAY   = (tid & 3) << 2
 // shiftAX = (tid & 3) << 3
-01:-:-:-:1      SHR.U32 tidAX,   tid,  2;
+01:-:-:-:1      SHR.U32 tidAX,   tid,  2;  //每组4个thread 
 01:-:-:-:1      LOP.AND tid3,    tid,  3;
 --:-:-:-:1      SHL     tidAY,   tid3, 2;
---:-:-:-:1      SHL     shiftAX, tid3, 3;
+--:-:-:-:1      SHL     shiftAX, tid3, 3; //Ashared memory 实际大小为128x16+32,实际为128*16，解决shared memory bank
+ conflict
 
 // tidBX = (tid & 7) << 2
 // tidBY = (tid >> 3)
 01:-:-:-:1      LOP.AND tidBX, tid,   7;
 --:-:-:-:1      SHL     tidBX, tidBX, 2;
---:-:-:-:1      SHR.U32 tidBY, tid,   3;
+--:-:-:-:1      SHR.U32 tidBY, tid,   3; //每组8个thread
 
 // trackA += 2 * ((blkA*128 + tidAX) * lda + tidAY)
 02:-:-:-:1      ISCADD txa00, blkA, tidAX, 7;
@@ -141,7 +154,7 @@
 --:-:-:-:1      LEA.HI.X trackB1,    tb, param_B[1], RZ, 2;
 
 // writeAs = (tidAY*128 + tidAX + shiftAX) * 4
---:-:-:-:1      ISCADD writeAs, tidAY, tidAX, 7;
+--:-:-:-:1      ISCADD writeAs, tidAY, tidAX, 7; //转置?
 --:-:-:-:1      IADD   writeAs, writeAs, shiftAX;
 --:-:-:-:1      ISCADD writeAs, writeAs, 4x<szShareA + szShareB>, 2;
 

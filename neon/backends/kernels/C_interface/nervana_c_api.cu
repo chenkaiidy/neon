@@ -210,6 +210,7 @@ extern "C" bool nervana_sgemm(float *A, float *B, float *C,
                               bool stochastic_round, bool apply_relu,
                               CUstream stream, int grid
                              )
+//nervana_sgemm(d_a, d_b, d_c, a_t, b_t, size, size, size, size, size, size, 1.0, 0.0, NULL, false, false, 0))
 {
     int sm_count;
     {
@@ -368,6 +369,7 @@ extern "C" bool nervana_hgemm(short *A, short *B, short *C,
     int one  = 1;
     void *args[16] = {&C, &A, &B, &alpha, &beta, &flags, &lda, &ldb, &ldc, &m, &n, &k,
                       &zero, &zero, &zero, &one};
+                    //ldaz, ldbz,ldcz
 
     res = cuLaunchKernel(nervana_kernels_[name],
                          1, gridA, gridB,

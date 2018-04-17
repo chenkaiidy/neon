@@ -377,12 +377,12 @@ def xprop_winograd(I, F, O, padding, minimal=False, backward=False):
 
     B = 2
     D = B + 2
-    Yw = ceil_div(P, B)
-    Xw = ceil_div(Q, B)
+    Yw = ceil_div(P, B)  #每个tile output size为B=2， P/B，Y方向分了多少个tile
+    Xw = ceil_div(Q, B)  #X方向分了多少个tile
 
-    Fw = np.empty((D,D,C,K))
-    Iw = np.empty((D,D,C,Yw,Xw,N))
-    Mw = np.empty((D,D,K,Yw,Xw,N)) #, dtype=np.float32
+    Fw = np.empty((D,D,C,K))  #transform后的filter size，D=4，即3x3的fileter变换后变成4x4,C和K均不变
+    Iw = np.empty((D,D,C,Yw,Xw,N)) #tramsform后的input size,由C,Y,X,N变换成D,D,C,Yw,Xw,N
+    Mw = np.empty((D,D,K,Yw,Xw,N)) #, dtype=np.float32 计算得到的output size
 
     # Transform Filters
     for c in range(C):
